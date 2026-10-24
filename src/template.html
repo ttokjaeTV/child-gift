@@ -161,13 +161,41 @@
     <img class="file-shot" src="img/filing2_custom.png" alt="홈택스 증여세 맞춤신고 질문 화면" loading="lazy">
     <table class="num-table">
       <tr><td class="n">❶</td><td><b>증여 받은 날</b> — 돈을 아이 계좌로 이체한 날.</td></tr>
-      <tr><td class="n">❷</td><td><b>증여자 주민등록번호</b> 입력 → 확인. 이어지는 질문(관계, 현금 증여 여부, 금액)에 답하면 현금 증여 신고서로 넘어가요.</td></tr>
+      <tr><td class="n">❷</td><td><b>증여자 주민등록번호</b> 입력 → 확인. 증여자와의 관계가 자동으로 채워지고 아래 질문이 이어져요.</td></tr>
     </table>
 
-    <div class="file-step">3. 금액 입력 → 제출 → 접수증 보관</div>
+    <div class="file-step">3. 이어지는 질문에 답하고 신고서로 넘어가기</div>
+    <img class="file-shot" src="img/filing4_answers.png" alt="홈택스 증여세 맞춤신고 질문에 답한 화면(예시값)" loading="lazy">
+    <table class="num-table">
+      <tr><td class="n">❶</td><td><b>연락처</b> — 신고하는 사람(아이 쪽) 연락처. 캡처는 예시 번호예요.</td></tr>
+      <tr><td class="n">❷</td><td><b>거주자인가요?</b> — 국내에 살면 '예'.</td></tr>
+      <tr><td class="n">❸</td><td><b>현금만 받았나요?</b> — 통장 이체로 준 돈이면 '예'.</td></tr>
+      <tr><td class="n">❹</td><td><b>받은 현금 금액</b> — 이번에 받은 돈. 예시는 5,000만원.</td></tr>
+      <tr><td class="n">❺</td><td><b>증여세를 증여자가 대신 내나요?</b> — 부모가 세금까지 내 주면 그 세금도 증여라서 금액에 더해져요. 아니면 '아니오'.</td></tr>
+      <tr><td class="n">❻</td><td><b>증여세 정기 신고하기</b> → "저장 후 다음 화면으로 이동" 확인. 아직 제출되는 건 아니에요.</td></tr>
+    </table>
+
+    <div class="file-step">4. 신고서 확인 — 여기서 '이대로 신고하기'가 제출이에요</div>
+    <img class="file-shot" src="img/filing5_return.png" alt="홈택스 증여세 신고서 요약 화면(예시값)" loading="lazy">
+    <table class="num-table">
+      <tr><td class="n">❶</td><td><b>수증자·증여자·증여일·관계</b> — 앞에서 넣은 내용이 맞는지 확인.</td></tr>
+      <tr><td class="n">❷</td><td><b>증여재산가액</b> — 받은 금액. <b>10년 안에 같은 사람에게 받은 증여가 있으면 '증여재산가산액'에 넣어야</b> 합산이 맞게 계산돼요(위 일정표의 '10년 합산' 칸).</td></tr>
+      <tr><td class="n">❸</td><td><b>증여재산공제</b> — 관계에 맞는 공제가 들어가요. 아이가 부모에게 받으면 미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원(10년 합계). 캡처는 배우자 증여 예시라 '배우자'로 보여요.</td></tr>
+      <tr><td class="n">❹</td><td><b>세액공제</b> — 기한 안에 신고하면 신고세액공제(<span data-rule="GIFT.filingCreditRate*100">3</span>%)가 여기 반영돼요.</td></tr>
+      <tr><td class="n">❺</td><td><b>이대로 신고하기</b> — 누르면 제출 단계예요. 위 금액을 다 확인한 뒤 누르세요.</td></tr>
+      <tr><td class="n">❻</td><td><b>세액계산 흐름</b> — 과세가액 → 과세표준 → 산출세액 → 낼 세금. 이 계산기의 결과와 맞춰 보세요.</td></tr>
+    </table>
+    <img class="file-shot" src="img/filing6_pay.png" alt="홈택스 증여세 신고서 납부방법·기타제출서식 화면(예시값)" loading="lazy">
+    <table class="num-table">
+      <tr><td class="n">❶</td><td><b>신고세액공제</b> — 낼 세금이 있을 때만 금액이 생겨요.</td></tr>
+      <tr><td class="n">❷</td><td><b>자진납부할세액</b> — 실제로 낼 세금. 0원이면 납부할 것 없음.</td></tr>
+      <tr><td class="n">❸</td><td><b>납부방법</b> — 낼 세금이 있으면 여기서 나눠 내기(분납) 등을 고를 수 있어요.</td></tr>
+      <tr><td class="n">❹</td><td><b>증여계약서</b> — 써 둔 증여계약서가 있으면 여기서 입력할 수 있어요.</td></tr>
+    </table>
+
+    <div class="file-step">5. 제출 → 납부 → 접수증 보관</div>
     <ol class="file-list">
-      <li>받은 현금 금액을 넣으면 증여재산공제(미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원)가 적용돼요. <b>10년 안에 같은 사람에게 받은 증여가 있으면 함께 넣어야</b> 합산이 맞게 계산돼요(위 일정표의 '10년 합산' 칸 참고).</li>
-      <li>내용을 확인하고 제출한 뒤, 낼 세금이 있으면 납부 기한(신고 기한과 같음) 안에 내요.</li>
+      <li>'이대로 신고하기'로 제출한 뒤, 낼 세금이 있으면 납부 기한(신고 기한과 같음) 안에 내요.</li>
       <li>신고내역 조회에서 <b>접수증</b>을 내려받고, 가족관계증명서·이체 내역은 '신고 부속·증빙서류 제출'로 올려 두세요.</li>
     </ol>
     <p class="note">캡처는 2026-10-24 홈택스 화면이고 개인정보는 가렸어요. 홈택스 메뉴와 화면은 바뀔 수 있으니, 막히면 화면의 '증여세 신고 도움말·도움영상'이나 국세상담센터(126)를 이용하세요.</p>

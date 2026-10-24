@@ -18,6 +18,18 @@
   .check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); }
   .check small { display: block; font-size: 12.5px; color: var(--ink-mute); font-weight: 600; }
   @media (max-width: 768px) { .cust-row { grid-template-columns: 1fr 1fr; } }
+  .file-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+  .file-sum > div { background: var(--bg); border-radius: 14px; padding: 14px 16px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); line-height: 1.6; }
+  .file-sum b { display: block; font-size: 14.5px; font-weight: 900; color: var(--ink); margin-bottom: 3px; }
+  .file-step { font-size: 15px; font-weight: 900; margin: 22px 0 8px; }
+  .file-step small { font-size: 12.5px; font-weight: 700; color: var(--ink-mute); margin-left: 6px; }
+  .file-shot { display: block; width: 100%; max-width: 800px; border: 1px solid var(--border); border-radius: 12px; }
+  .num-table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; table-layout: fixed; }
+  .num-table td { border: 1px solid var(--border); padding: 9px 12px; font-size: 14px; font-weight: 600; line-height: 1.6; color: var(--ink-soft); vertical-align: middle; }
+  .num-table td.n { width: 52px; text-align: center; color: #e03131; font-size: 22px; line-height: 1.2; background: var(--white); }
+  .num-table b { color: var(--ink); }
+  .file-list { margin: 6px 0 0; padding-left: 20px; font-size: 14px; font-weight: 600; color: var(--ink-soft); line-height: 1.75; }
+  @media (max-width: 768px) { .file-sum { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -123,6 +135,42 @@
       <div><div class="chart-title">나이별 아이 자산</div><div class="chart-subtitle">미래 금액(명목) · 증여 원금과 굴려서 늘어난 몫</div></div>
     </div>
     <div class="chart-container"><canvas id="bal-chart"></canvas></div>
+  </div>
+
+  <!-- 증여 신고하는 법 -->
+  <div class="card" id="filing">
+    <div class="step-label"><div class="step-line"></div><span class="step-text">HOW TO FILE</span></div>
+    <div class="step-title">증여 신고하는 법 (홈택스 현금 증여)</div>
+    <div class="step-desc">세금이 0원이어도 신고해 두면 나중에 아이가 그 돈과 불린 돈을 쓸 때 <b>자금 출처 증빙</b>이 돼요. 기한 안에 신고하면 낼 세금이 있을 때 <span data-rule="GIFT.filingCreditRate*100">3</span>%를 덜 내요.</div>
+    <div class="file-sum">
+      <div><b>누가</b>증여받은 아이(수증자)가 신고해요. 미성년이면 부모가 도와 아이 명의로 홈택스에 로그인해 신고합니다(나이에 따라 로그인 방법이 달라요).</div>
+      <div><b>언제</b>증여받은 날이 속한 달의 <b>말일부터 3개월 안</b>. 예) 1월 15일에 줬다면 4월 30일까지.</div>
+      <div><b>준비물</b>증여자(부모) 주민등록번호, 관계를 보여 주는 가족관계증명서, 이체 내역이나 통장 사본.</div>
+    </div>
+
+    <div class="file-step">1. 홈택스 → 세금신고 → 증여세 신고 <small>메뉴 이름은 2026-10-24 화면 기준</small></div>
+    <img class="file-shot" src="img/filing1_menu.png" alt="홈택스 증여세 신고 첫 화면" loading="lazy">
+    <table class="num-table">
+      <tr><td class="n">❶</td><td><b>맞춤신고 찾기</b> — 현금 증여는 이걸 누르세요(홈택스도 "현금증여는 꼭 맞춤신고 찾기"라고 안내해요).</td></tr>
+      <tr><td class="n">❷</td><td><b>정기신고</b> — 현금 외 재산이거나 신고서를 직접 작성할 때.</td></tr>
+      <tr><td class="n">❸</td><td><b>신고내역 조회(접수증·납부서)</b> — 제출 뒤 접수증을 내려받아 보관하세요.</td></tr>
+      <tr><td class="n">❹</td><td><b>신고 부속·증빙서류 제출</b> — 가족관계증명서·이체 내역을 여기서 올려요.</td></tr>
+    </table>
+
+    <div class="file-step">2. 맞춤신고 질문에 답하기</div>
+    <img class="file-shot" src="img/filing2_custom.png" alt="홈택스 증여세 맞춤신고 질문 화면" loading="lazy">
+    <table class="num-table">
+      <tr><td class="n">❶</td><td><b>증여 받은 날</b> — 돈을 아이 계좌로 이체한 날.</td></tr>
+      <tr><td class="n">❷</td><td><b>증여자 주민등록번호</b> 입력 → 확인. 이어지는 질문(관계, 현금 증여 여부, 금액)에 답하면 현금 증여 신고서로 넘어가요.</td></tr>
+    </table>
+
+    <div class="file-step">3. 금액 입력 → 제출 → 접수증 보관</div>
+    <ol class="file-list">
+      <li>받은 현금 금액을 넣으면 증여재산공제(미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원)가 적용돼요. <b>10년 안에 같은 사람에게 받은 증여가 있으면 함께 넣어야</b> 합산이 맞게 계산돼요(위 일정표의 '10년 합산' 칸 참고).</li>
+      <li>내용을 확인하고 제출한 뒤, 낼 세금이 있으면 납부 기한(신고 기한과 같음) 안에 내요.</li>
+      <li>신고내역 조회에서 <b>접수증</b>을 내려받고, 가족관계증명서·이체 내역은 '신고 부속·증빙서류 제출'로 올려 두세요.</li>
+    </ol>
+    <p class="note">캡처는 2026-10-24 홈택스 화면이고 개인정보는 가렸어요. 홈택스 메뉴와 화면은 바뀔 수 있으니, 막히면 화면의 '증여세 신고 도움말·도움영상'이나 국세상담센터(126)를 이용하세요.</p>
   </div>
 
   <div class="insight-box">
@@ -269,7 +317,7 @@ function render() {
   const taxed = r.events.filter(e => e.tax > 0);
   if (taxed.length) al.push(['warn', `증여세가 나오는 해가 <b>${taxed.length}번</b> 있어요(${taxed.map(e => e.age + '세').join(', ')}). 10년 합산이 공제 한도를 넘었기 때문이에요. 시점을 늦추거나 금액을 나누면 줄일 수 있어요.`]);
   else al.push(['ok', '모든 증여가 공제 한도 안이라 증여세가 0원이에요.']);
-  al.push(['info', '세금이 0원이어도 <b>증여 신고를 해 두는 게 좋아요</b>. 아이가 나중에 그 돈과 불어난 돈으로 집을 살 때 "이미 증여받은 돈"이라는 자금 출처 증빙이 되고, 신고한 돈을 일반적인 예금·ETF 투자로 불린 몫은 아이의 소득이에요.']);
+  al.push(['info', '세금이 0원이어도 <b>증여 신고를 해 두는 게 좋아요</b>(<a href="#filing" style="color:var(--accent);font-weight:800">신고하는 법 ↓</a>). 아이가 나중에 그 돈과 불어난 돈으로 집을 살 때 "이미 증여받은 돈"이라는 자금 출처 증빙이 되고, 신고한 돈을 일반적인 예금·ETF 투자로 불린 몫은 아이의 소득이에요.']);
   if (p.donor === 'grand') al.push(['info', `조부모가 손주에게 주면 세금이 ${Math.round(TR.GIFT.generationSkipSurcharge * 100)}% 늘지만, 부모를 거쳐 두 번 증여되는 것보다 쌀 수 있어요. 공제 한도는 부모·조부모가 함께 써요.`]);
   if (p.mode === 'monthly' && r.events.length) al.push(['info', '매달 적립은 매달이 각각 증여예요. 이 계산은 한 해 치를 묶어 본 근삿값이고, 미리 \'정기금\'으로 한 번에 신고하는 방법은 넣지 않았어요.']);
   $('alerts').innerHTML = al.map(([k, h]) => `<div class="alert ${k}"><span class="ic">${k === 'warn' ? '!' : k === 'ok' ? '✓' : 'i'}</span><div>${h}</div></div>`).join('');

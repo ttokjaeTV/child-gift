@@ -311,6 +311,7 @@
       <div><label class="label" for="m-to">끝 나이 (이 나이 전까지)</label><div class="input-wrap"><input type="text" inputmode="numeric" id="m-to" value="19"><span class="input-unit">세</span></div></div>
     </div>
     <div class="mode-box" id="box-custom" style="display:none">
+      <p class="note" style="margin:0 0 10px">생일처럼 <b>같은 날짜에 정확히 10년 간격</b>으로 주면 앞의 증여도 10년 안으로 보고 합쳐요. 합산을 피하려면 10년이 지난 다음 날 이후에 주세요.</p>
       <div class="cust-row" style="font-size:12px;font-weight:800;color:var(--ink-mute)"><span>주는 나이</span><span>금액</span></div>
       <div id="cust-rows"></div>
     </div>
@@ -374,7 +375,7 @@
       <div class="method-box">
         <div class="method-t">이렇게 계산해요 (상속세 및 증여세법)</div>
         <ul class="method-list">
-          <li>증여할 때마다 직전 10년 안에 같은 사람(부모는 두 분을 한 사람으로)에게 받은 돈을 합쳐(제47조②) 공제를 빼고 과세표준을 구합니다.</li>
+          <li>증여할 때마다 직전 10년 안에 같은 사람(부모는 두 분을 한 사람으로)에게 받은 돈을 합쳐(제47조②) 공제를 빼고 과세표준을 구합니다. <b>정확히 10년 전 같은 날짜</b>의 증여도 합산에 넣어요(기간을 민법에 따라 거꾸로 세면 그날이 들어감 — 국세청 해석이 따로 확인되지 않아 세금이 더 나오는 쪽으로 봄). '10년마다 한도만큼' 계획은 10년이 지난 다음 날 준다고 봅니다.</li>
           <li>공제: 직계존속에게 받으면 10년 합계 미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원(제53조), 혼인·출산 때는 따로 평생 <span data-rule="GIFT.marriageBirthDeduction/1e8">1</span>억원(제53조의2).</li>
           <li>세율 10~50% 누진(제26조·제56조), 과세표준 <span data-rule="GIFT.minTaxBase/1e4">50</span>만원 미만은 0원(제55조②), 손주가 받으면 <span data-rule="GIFT.generationSkipSurcharge*100">30</span>% 할증(제57조), 합산된 이전 증여에 붙은 세금은 빼고(제58조), 기한 안에 신고하면 <span data-rule="GIFT.filingCreditRate*100">3</span>% 공제(제69조).</li>
           <li>매달 적립은 한 해 동안 준 돈을 그해 증여 한 번으로 묶어 계산합니다(실제로는 매달이 각각 증여).</li>
@@ -414,7 +415,8 @@ const TR = TTOKJAE_RULES;
  * 제도 숫자는 모두 rules.js(R.GIFT, v2026.3 이상)에서 읽는다.
  *
  * 증여 한 건(나이 a, 금액 g)의 세금 — 같은 증여자(부모는 두 분을 한 사람으로 봄)로부터 받은 것 기준
- *   10년 합산(제47조②): 이번 증여 + 직전 10년 안(나이 a−10 초과)의 증여
+ *   10년 합산(제47조②): 이번 증여 + 직전 10년 안의 증여. 정확히 10년 전 같은 날 증여도 넣는다(민법 기간 역산 — 보수적).
+ *     '10년마다 한도만큼' 계획(afterTen)은 지난 증여에서 10년이 지난 다음 날 준다고 보고 뺀다
  *   증여재산공제(제53조): 이번 증여 때 나이로 정한 한도(미성년 2천만·성년 5천만). 10년 안에 받은 공제도 이 한도 안에 든다
  *   혼인·출산 공제(제53조의2): 그 증여에 붙인 금액만큼 별도로, 평생 1억 안에서
  *   과세표준 50만원 미만은 0(제55조②) → 세율표(제26조) → 손주면 30% 할증(제57조)
@@ -435,14 +437,14 @@ function giftTaxes(events, opt, R) {
   const ev = events.filter(e => e.amt > 0).map(e => ({ ...e })).sort((a, b) => a.age - b.age);
   let mbUsed = 0;
   ev.forEach((e, k) => {
-    const win = ev.slice(0, k).filter(x => x.age > e.age - G.periodYears);
+    const win = ev.slice(0, k).filter(x => x.age > e.age - G.periodYears || (x.age === e.age - G.periodYears && !e.afterTen));
     const agg = e.amt + win.reduce((s, x) => s + x.amt, 0);
     const mb = Math.min(e.mb || 0, e.amt, Math.max(0, G.marriageBirthDeduction - mbUsed));
     mbUsed += mb;
     const mbWin = mb + win.reduce((s, x) => s + (x.mbUsed || 0), 0);
     const ded = Math.min(giftLimit(e.age, R), Math.max(0, agg - mbWin));
-    let base = Math.max(0, agg - ded - mbWin);
-    if (base < G.minTaxBase) base = 0;
+    const baseRaw = Math.max(0, agg - ded - mbWin);
+    const base = baseRaw < G.minTaxBase ? 0 : baseRaw;   // 과세최저한(제55조②): 50만원 미만이면 과세 안 함
     let calc = Math.floor(giftCalcTax(base, R));
     if (grand && calc > 0) {
       const big = e.age < G.minorAgeUnder && e.amt > G.generationSkipLargeThreshold;
@@ -451,7 +453,7 @@ function giftTaxes(events, opt, R) {
     const prev = Math.min(calc, win.reduce((s, x) => s + x.own, 0));
     const before = calc - prev;
     const credit = Math.floor(before * G.filingCreditRate);
-    Object.assign(e, { agg, ded, mbUsed: mb, base, calc, prev, own: before, credit, tax: before - credit, win: win.length });
+    Object.assign(e, { agg, ded, mbUsed: mb, base, baseRaw, calc, prev, own: before, credit, tax: before - credit, win: win.length });
   });
   return ev;
 }
@@ -462,7 +464,7 @@ function giftTaxes(events, opt, R) {
 function giftEvents(p, R) {
   const G = R.GIFT, out = [];
   if (p.mode === 'cycle') {
-    for (let a = p.age0; a <= p.target; a += G.periodYears) out.push({ age: a, amt: giftLimit(a, R), kind: 'cycle' });
+    for (let a = p.age0; a <= p.target; a += G.periodYears) out.push({ age: a, amt: giftLimit(a, R), kind: 'cycle', afterTen: a > p.age0 });
   } else if (p.mode === 'monthly') {
     for (let a = Math.max(p.age0, p.mFrom); a < Math.min(p.target, p.mTo); a++) out.push({ age: a, amt: p.monthly * 12, kind: 'monthly' });
   } else {
@@ -471,7 +473,7 @@ function giftEvents(p, R) {
   if (p.mbOn && p.mbAmt > 0 && p.mbAge >= p.age0 && p.mbAge <= p.target) out.push({ age: Math.round(p.mbAge), amt: p.mbAmt, mb: p.mbAmt, kind: 'mb' });
   // 같은 나이 증여는 한 번으로 묶는다 (같은 해에 준 돈)
   const by = {};
-  out.forEach(e => { const k = e.age; if (!by[k]) by[k] = { age: k, amt: 0, mb: 0, kinds: [] }; by[k].amt += e.amt; by[k].mb += e.mb || 0; by[k].kinds.push(e.kind); });
+  out.forEach(e => { const k = e.age; if (!by[k]) by[k] = { age: k, amt: 0, mb: 0, kinds: [], afterTen: false }; by[k].amt += e.amt; by[k].afterTen = by[k].afterTen || !!e.afterTen; by[k].mb += e.mb || 0; by[k].kinds.push(e.kind); });
   return Object.values(by).sort((a, b) => a.age - b.age);
 }
 
@@ -595,8 +597,8 @@ function render() {
   $('alerts').innerHTML = al.map(([k, h]) => `<div class="alert ${k}"><span class="ic">${k === 'warn' ? '!' : k === 'ok' ? '✓' : 'i'}</span><div>${h}</div></div>`).join('');
 
   const KIND = { cycle: '10년 공제 한도', monthly: '매달 적립(1년치)', custom: '직접 입력', mb: '혼인·출산 공제' };
-  $('ev-table').querySelector('tbody').innerHTML = r.events.map(e => `<tr><td>${e.age}세</td><td>${p.year0 + e.age - p.age0}</td><td>${fmtMan(e.amt)}</td><td>${e.win ? fmtMan(e.agg) : '-'}</td><td>${fmtMan(e.ded + e.mbUsed)}</td><td>${fmtMan(e.base)}</td>`
-    + `<td class="tax ${e.tax ? '' : 'zero'}">${e.tax ? fmtWon(e.tax) : '0원'}</td><td class="kind">${e.kinds.map(k => KIND[k]).join(' + ')}${e.age < TR.GIFT.minorAgeUnder ? ' · 미성년' : ''}${e.prev ? ` · 이전 세액 ${fmtWon(e.prev)} 뺌` : ''}</td></tr>`).join('')
+  $('ev-table').querySelector('tbody').innerHTML = r.events.map(e => `<tr><td>${e.age}세</td><td>${p.year0 + e.age - p.age0}</td><td>${fmtMan(e.amt)}</td><td>${e.win ? fmtMan(e.agg) : '-'}</td><td>${fmtMan(e.ded + e.mbUsed)}</td><td>${fmtMan(e.baseRaw)}</td>`
+    + `<td class="tax ${e.tax ? '' : 'zero'}">${e.tax ? fmtWon(e.tax) : '0원'}</td><td class="kind">${e.kinds.map(k => KIND[k]).join(' + ')}${e.age < TR.GIFT.minorAgeUnder ? ' · 미성년' : ''}${e.baseRaw > 0 && e.base === 0 ? ` · ${fmtMan(TR.GIFT.minTaxBase)} 미만이라 과세 안 함` : ''}${e.prev ? ` · 이전 세액 ${fmtWon(e.prev)} 뺌` : ''}</td></tr>`).join('')
     || '<tr><td colspan="8" style="text-align:center;color:var(--ink-mute)">증여 일정이 없어요. 금액이나 나이를 확인해 주세요.</td></tr>';
 
   renderChart(p, r);

@@ -2,7 +2,8 @@
  * 제도 숫자는 모두 rules.js(R.GIFT, v2026.3 이상)에서 읽는다.
  *
  * 증여 한 건(나이 a, 금액 g)의 세금 — 같은 증여자(부모는 두 분을 한 사람으로 봄)로부터 받은 것 기준
- *   10년 합산(제47조②): 이번 증여 + 직전 10년 안(나이 a−10 초과)의 증여
+ *   10년 합산(제47조②): 이번 증여 + 직전 10년 안의 증여. 정확히 10년 전 같은 날 증여도 넣는다(민법 기간 역산 — 보수적).
+ *     '10년마다 한도만큼' 계획(afterTen)은 지난 증여에서 10년이 지난 다음 날 준다고 보고 뺀다
  *   증여재산공제(제53조): 이번 증여 때 나이로 정한 한도(미성년 2천만·성년 5천만). 10년 안에 받은 공제도 이 한도 안에 든다
  *   혼인·출산 공제(제53조의2): 그 증여에 붙인 금액만큼 별도로, 평생 1억 안에서
  *   과세표준 50만원 미만은 0(제55조②) → 세율표(제26조) → 손주면 30% 할증(제57조)
@@ -23,14 +24,14 @@ function giftTaxes(events, opt, R) {
   const ev = events.filter(e => e.amt > 0).map(e => ({ ...e })).sort((a, b) => a.age - b.age);
   let mbUsed = 0;
   ev.forEach((e, k) => {
-    const win = ev.slice(0, k).filter(x => x.age > e.age - G.periodYears);
+    const win = ev.slice(0, k).filter(x => x.age > e.age - G.periodYears || (x.age === e.age - G.periodYears && !e.afterTen));
     const agg = e.amt + win.reduce((s, x) => s + x.amt, 0);
     const mb = Math.min(e.mb || 0, e.amt, Math.max(0, G.marriageBirthDeduction - mbUsed));
     mbUsed += mb;
     const mbWin = mb + win.reduce((s, x) => s + (x.mbUsed || 0), 0);
     const ded = Math.min(giftLimit(e.age, R), Math.max(0, agg - mbWin));
-    let base = Math.max(0, agg - ded - mbWin);
-    if (base < G.minTaxBase) base = 0;
+    const baseRaw = Math.max(0, agg - ded - mbWin);
+    const base = baseRaw < G.minTaxBase ? 0 : baseRaw;   // 과세최저한(제55조②): 50만원 미만이면 과세 안 함
     let calc = Math.floor(giftCalcTax(base, R));
     if (grand && calc > 0) {
       const big = e.age < G.minorAgeUnder && e.amt > G.generationSkipLargeThreshold;
@@ -39,7 +40,7 @@ function giftTaxes(events, opt, R) {
     const prev = Math.min(calc, win.reduce((s, x) => s + x.own, 0));
     const before = calc - prev;
     const credit = Math.floor(before * G.filingCreditRate);
-    Object.assign(e, { agg, ded, mbUsed: mb, base, calc, prev, own: before, credit, tax: before - credit, win: win.length });
+    Object.assign(e, { agg, ded, mbUsed: mb, base, baseRaw, calc, prev, own: before, credit, tax: before - credit, win: win.length });
   });
   return ev;
 }
@@ -50,7 +51,7 @@ function giftTaxes(events, opt, R) {
 function giftEvents(p, R) {
   const G = R.GIFT, out = [];
   if (p.mode === 'cycle') {
-    for (let a = p.age0; a <= p.target; a += G.periodYears) out.push({ age: a, amt: giftLimit(a, R), kind: 'cycle' });
+    for (let a = p.age0; a <= p.target; a += G.periodYears) out.push({ age: a, amt: giftLimit(a, R), kind: 'cycle', afterTen: a > p.age0 });
   } else if (p.mode === 'monthly') {
     for (let a = Math.max(p.age0, p.mFrom); a < Math.min(p.target, p.mTo); a++) out.push({ age: a, amt: p.monthly * 12, kind: 'monthly' });
   } else {
@@ -59,7 +60,7 @@ function giftEvents(p, R) {
   if (p.mbOn && p.mbAmt > 0 && p.mbAge >= p.age0 && p.mbAge <= p.target) out.push({ age: Math.round(p.mbAge), amt: p.mbAmt, mb: p.mbAmt, kind: 'mb' });
   // 같은 나이 증여는 한 번으로 묶는다 (같은 해에 준 돈)
   const by = {};
-  out.forEach(e => { const k = e.age; if (!by[k]) by[k] = { age: k, amt: 0, mb: 0, kinds: [] }; by[k].amt += e.amt; by[k].mb += e.mb || 0; by[k].kinds.push(e.kind); });
+  out.forEach(e => { const k = e.age; if (!by[k]) by[k] = { age: k, amt: 0, mb: 0, kinds: [], afterTen: false }; by[k].amt += e.amt; by[k].afterTen = by[k].afterTen || !!e.afterTen; by[k].mb += e.mb || 0; by[k].kinds.push(e.kind); });
   return Object.values(by).sort((a, b) => a.age - b.age);
 }
 

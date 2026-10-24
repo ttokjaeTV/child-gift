@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자녀 증여 계산기 · 똑재TV</title>
+<meta name="description" content="자녀에게 언제, 얼마씩 증여하면 증여세 없이 줄 수 있는지 — 미성년 2,000만원·성년 5,000만원(10년), 혼인·출산 1억원 공제와 10년 합산까지 반영해 증여세와, 증여한 돈을 ETF로 굴렸을 때 자녀가 받게 될 금액을 계산하는 무료 계산기. 2026년 세법 기준.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #F5EFE6; --bg-alt: #EFE7DA;
+    --ink: #1A1A1A; --ink-soft: #4A4A4A; --ink-mute: #8B8276;
+    --accent: #D9542B; --accent-soft: #F4D5C4;
+    --border: #E5DCC8; --white: #FBF7F0;
+    --brown: #8B6F47; --beige-gold: #C4A57B;
+    --dark-warm: #3A2F26; --dark-warm-soft: #5A4A3D;
+    --green: #4A5A4A; --green-soft: #DDE3D8;
+    --blue: #2E5E8A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: var(--bg); color: var(--ink); padding: 32px 24px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .hub-back { display: inline-block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--ink-mute); text-decoration: none; }
+  .hub-back:hover { color: var(--accent); }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 48px; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--dark-warm); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 900; font-size: 18px; }
+  .logo-name { font-size: 16px; font-weight: 900; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 10px; color: var(--ink-mute); font-weight: 700; letter-spacing: 1px; }
+  .base-date { font-size: 12px; font-weight: 700; color: var(--ink-mute); background: var(--white); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+  .hero { text-align: left; margin-bottom: 32px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; background: var(--white); border: 1.5px solid var(--accent); color: var(--accent); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 28px; }
+  .tag .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+  .hero-title { font-size: 64px; font-weight: 900; letter-spacing: -2.5px; line-height: 1.05; margin-bottom: 20px; }
+  .underline-mark { background: linear-gradient(transparent 60%, var(--accent-soft) 60%); padding: 0 4px; }
+  .hero-desc { font-size: 17px; color: var(--ink-soft); line-height: 1.7; font-weight: 500; }
+  .top-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 16px; padding: 18px 24px; margin-bottom: 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+  .top-cta-text { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+  .top-cta-links { display: flex; gap: 8px; flex-wrap: wrap; }
+  .top-cta-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; background: var(--white); border: 1.5px solid var(--border); color: var(--ink); }
+  .top-cta-link.primary { background: var(--accent); color: var(--white); border-color: var(--accent); }
+  .naver-mark { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #03C75A; color: #FFFFFF; font-weight: 900; font-size: 11px; border-radius: 3px; line-height: 1; flex-shrink: 0; }
+
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 32px; }
+  .step-label { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .step-line { width: 28px; height: 2px; background: var(--accent); }
+  .step-text { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); }
+  .step-title { font-size: 22px; font-weight: 900; letter-spacing: -0.6px; margin-bottom: 6px; }
+  .step-desc { font-size: 14px; color: var(--ink-mute); font-weight: 600; margin-bottom: 22px; }
+  .step-desc b { color: var(--ink); font-weight: 800; }
+  .label { font-size: 13px; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; display: block; letter-spacing: -0.2px; }
+  input, select { background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; font-family: inherit; font-size: 17px; color: var(--ink); font-weight: 700; transition: all 0.15s ease; width: 100%; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .input-wrap { position: relative; }
+  .input-wrap input { padding-right: 52px; text-align: right; }
+  .input-wrap.wide-unit input { padding-right: 70px; }
+  .input-unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 700; color: var(--ink-mute); pointer-events: none; }
+  .input-hint { font-size: 13px; color: var(--ink-mute); margin-top: 6px; font-weight: 600; min-height: 18px; }
+  .input-hint b { color: var(--accent); font-weight: 800; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .seg { display: inline-flex; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; width: 100%; }
+  .seg button { flex: 1; border: none; background: transparent; padding: 10px 12px; border-radius: 9px; font-family: inherit; font-size: 15px; font-weight: 800; color: var(--ink-mute); cursor: pointer; }
+  .seg button.on { background: var(--dark-warm); color: var(--white); }
+  .seg.sm button { font-size: 13.5px; padding: 8px 8px; }
+  .sub-title { font-size: 17px; font-weight: 900; margin: 26px 0 10px; letter-spacing: -.3px; }
+  .sub-title small { font-size: 13px; font-weight: 700; color: var(--ink-mute); margin-left: 6px; }
+
+  details.adv { margin-top: 22px; border-top: 1px dashed var(--border); padding-top: 18px; }
+  details.adv > summary { cursor: pointer; font-size: 15px; font-weight: 800; color: var(--ink-soft); list-style: none; display: flex; align-items: center; gap: 8px; }
+  details.adv > summary::-webkit-details-marker { display: none; }
+  details.adv > summary::before { content: '+'; display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--bg-alt); align-items: center; justify-content: center; font-weight: 900; color: var(--accent); flex-shrink: 0; }
+  details.adv[open] > summary::before { content: '−'; }
+  details.adv > summary small { font-size: 12.5px; color: var(--ink-mute); font-weight: 600; }
+  .adv-body { margin-top: 18px; }
+  .ev-row { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+  .ev-row input[type=text].ev-name { text-align: left; font-size: 15px; }
+  .ev-head { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr; gap: 10px; font-size: 12px; font-weight: 800; color: var(--ink-mute); margin-bottom: 6px; }
+
+  .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .stat-card.accent { background: var(--dark-warm); color: var(--white); border-color: var(--dark-warm); }
+  .stat-card.accent .stat-label { color: var(--accent-soft); }
+  .stat-card.accent .stat-sub { color: #D9D2C5; }
+  .stat-label { font-size: 13px; font-weight: 800; color: var(--ink-mute); margin-bottom: 8px; }
+  .stat-value { font-size: 26px; font-weight: 900; letter-spacing: -1px; line-height: 1.15; }
+  .stat-sub { font-size: 13px; color: var(--ink-mute); margin-top: 8px; font-weight: 600; line-height: 1.45; }
+  .progress { height: 8px; background: var(--bg-alt); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+  .progress i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+
+  .alerts { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .alert .ic { font-weight: 900; flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-top: 1px; color: var(--white); }
+  .alert.ok { background: var(--green-soft); color: #2F3D2F; } .alert.ok .ic { background: var(--green); }
+  .alert.warn { background: #FBE3D6; color: #7A2E14; } .alert.warn .ic { background: var(--accent); }
+  .alert.info { background: var(--bg-alt); color: var(--ink-soft); } .alert.info .ic { background: var(--brown); }
+  .alert b { font-weight: 900; }
+
+  .chart-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .chart-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .chart-subtitle { font-size: 13px; color: var(--ink-mute); font-weight: 600; margin-top: 2px; }
+  .chart-container { position: relative; height: 340px; width: 100%; }
+  .real-seg { width: auto; }
+  .real-seg button { padding: 7px 12px; font-size: 13px; white-space: nowrap; }
+
+  .table-wrap { overflow-x: auto; margin-top: 16px; border-radius: 12px; -webkit-overflow-scrolling: touch; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .data-table th { background: var(--bg-alt); padding: 12px 10px; text-align: right; font-weight: 800; color: var(--ink-soft); font-size: 13px; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+  .data-table th:first-child, .data-table td:first-child { text-align: left; }
+  .data-table td { padding: 11px 10px; text-align: right; border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+  .data-table tbody tr:hover { background: var(--bg-alt); }
+  .data-table tr.mine td { background: var(--accent-soft); font-weight: 800; }
+  .data-table tr.free td { background: #EEF2EB; }
+  .badge { display: inline-block; font-size: 11.5px; font-weight: 900; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+  .badge.mine { background: var(--accent); color: var(--white); }
+  .badge.free { background: var(--green); color: var(--white); }
+  .data-table td.bad { color: var(--blue); font-weight: 800; }
+  .data-table td.ok { color: var(--green); font-weight: 800; }
+  .yr-table { min-width: 860px; font-size: 13px; }
+  .yr-table tr.short td { background: #E9EFF5; }
+  .yr-table tr.ret td { border-top: 2px solid var(--dark-warm); }
+  .yr-table td.ev { text-align: left; font-size: 12px; color: var(--ink-soft); }
+  .yr-table td.neg { color: var(--blue); }
+  details.fold > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  .fold-btn { font-size: 13px; font-weight: 800; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 999px; padding: 6px 14px; white-space: nowrap; }
+  details.fold[open] .fold-btn .open-txt { display: none; }
+  details.fold:not([open]) .fold-btn .close-txt { display: none; }
+  .dl-btn { font-family: inherit; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--accent); background: var(--white); color: var(--accent); cursor: pointer; margin-top: 12px; }
+  .dl-btn:hover { background: var(--accent); color: #fff; }
+
+  .insight-box { background: var(--dark-warm); color: var(--white); border-radius: 20px; padding: 36px; margin-bottom: 24px; }
+  .insight-label { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .insight-label-text { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-soft); }
+  .insight-title { font-size: 26px; font-weight: 900; margin-bottom: 16px; letter-spacing: -0.6px; line-height: 1.35; }
+  .insight-title em { font-style: normal; color: #FFB48F; }
+  .insight-desc { font-size: 15px; line-height: 1.8; color: #D9D2C5; font-weight: 500; }
+  .insight-desc strong { color: var(--white); }
+  .insight-desc ul { margin: 10px 0 0 0; padding-left: 0; list-style: none; }
+  .insight-desc li { padding-left: 18px; position: relative; margin-bottom: 6px; }
+  .insight-desc li::before { content: ''; position: absolute; left: 4px; top: 11px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+  .insight-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .insight-tools .cta-link { cursor: pointer; font-family: inherit; }
+  .insight-cta { margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .insight-cta-text { font-size: 14px; color: #D9D2C5; font-weight: 600; margin-right: 8px; }
+  .cta-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none; letter-spacing: -0.2px; }
+  .cta-link.primary { background: var(--accent); color: var(--white); border: none; }
+  .cta-link.secondary { background: rgba(255,255,255,0.08); color: var(--white); border: 1px solid rgba(255,255,255,0.15); }
+  footer { font-size: 12px; color: var(--ink-mute); font-weight: 600; line-height: 1.8; padding: 8px 4px 24px; }
+
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .method-box { background: var(--bg); border-radius: 14px; padding: 16px 18px; }
+  .method-t { font-size: 14px; font-weight: 900; color: var(--dark-warm); margin-bottom: 8px; }
+  .method-list { list-style: none; margin: 0; padding: 0; }
+  .method-list li { position: relative; padding-left: 14px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); line-height: 1.7; margin-bottom: 6px; word-break: keep-all; }
+  .method-list li::before { content: ''; position: absolute; left: 2px; top: 10px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .method-list li b { color: var(--ink); font-weight: 800; }
+
+
+  .note { font-size: 12.5px; font-weight: 600; color: var(--ink-mute); line-height: 1.65; margin-top: 12px; }
+  .note a { color: var(--accent); font-weight: 800; }
+  .note b { color: var(--ink-soft); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .tgl { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--white); font-size: 14px; font-weight: 800; color: var(--ink-soft); }
+  .tgl input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .tgl:has(input:checked) { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .tool-btn { display: inline-flex; align-items: center; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--white); font-family: inherit; font-size: 14px; font-weight: 800; color: var(--ink-soft); cursor: pointer; text-decoration: none; }
+  .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tool-btn.ghost { margin-left: auto; }
+  .verdict { background: var(--dark-warm); color: var(--white); border-radius: 18px; padding: 24px 26px; margin-bottom: 18px; }
+  .v-k { font-size: 13px; font-weight: 800; color: #D9C9BA; }
+  .v-main { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin: 6px 0 8px; line-height: 1.25; }
+  .v-main b { color: #FFB48F; } .v-main.ok b { color: #BFE3BF; }
+  .v-sub { font-size: 15px; font-weight: 600; color: #E6DDD0; line-height: 1.6; }
+  .v-sub b { color: var(--white); }
+  .levers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .lever { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; background: var(--white); }
+  .lv-t { font-size: 14px; font-weight: 900; } .lv-s { font-size: 12.5px; font-weight: 600; color: var(--ink-mute); margin-top: 2px; }
+  .lv-d { margin-top: 8px; font-size: 18px; font-weight: 900; } .lv-d em { font-style: normal; } .lv-d em.ok { color: var(--green); } .lv-d em.bad { color: var(--blue); } .lv-d small { display: block; font-size: 12px; font-weight: 700; color: var(--ink-mute); }
+  .adj-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; background: var(--bg); border-radius: 14px; padding: 14px 16px; }
+  .adj-txt b { display: block; font-size: 14.5px; font-weight: 900; } .adj-txt span { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-mute); line-height: 1.55; margin-top: 2px; }
+  .adj-seg { max-width: 320px; flex-shrink: 0; }
+  .adj-out { margin-top: 8px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); } .adj-out b { color: var(--accent); font-weight: 900; }
+  .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .sc { border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; background: var(--white); }
+  .sc.on { border-color: var(--accent); background: #FDF3EC; }
+  .sc-head { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+  .sc-head input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+  .sc-head b { font-size: 15.5px; font-weight: 900; display: block; }
+  .sc-head small { display: block; font-size: 12.5px; color: var(--ink-mute); font-weight: 600; margin-top: 2px; line-height: 1.5; }
+  .sc-body { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .sc-body.two { grid-template-columns: 1fr 1fr; }
+  .sc-body .label { font-size: 12px; margin-bottom: 4px; }
+  .sc-body input { font-size: 15px; padding: 9px 12px; }
+  .sc:not(.on) .sc-body { opacity: .5; }
+
+  @media (max-width: 960px) { .levers { grid-template-columns: 1fr 1fr; } .grid-4 { grid-template-columns: 1fr 1fr; } .sc-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    body { padding: 16px 12px; }
+    header { margin-bottom: 28px; }
+    .base-date { font-size: 11px; padding: 5px 10px; }
+    .card { padding: 20px 16px; margin-bottom: 20px; border-radius: 16px; }
+    .hero { margin-bottom: 28px; }
+    .hero-title { font-size: 32px; letter-spacing: -1.2px; line-height: 1.2; }
+    .hero-desc { font-size: 15px; }
+    .pc-br { display: none; }
+    .top-cta { flex-direction: column; align-items: stretch; padding: 16px; }
+    .top-cta-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .top-cta-link { justify-content: center; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 14px; }
+    .grid-4 { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .step-title { font-size: 19px; }
+    .stat-card { padding: 16px; border-radius: 14px; }
+    .stat-value { font-size: 22px; }
+    .chart-container { height: 290px; }
+    .insight-box { padding: 24px 18px; border-radius: 16px; }
+    .insight-title { font-size: 20px; }
+    .insight-cta { flex-direction: column; align-items: stretch; }
+    .cta-link { justify-content: center; }
+    .table-wrap { margin: 16px -16px 0; padding: 0 16px; }
+    .data-table { font-size: 13px; }
+    .yr-table th:first-child, .yr-table td:first-child { position: sticky; left: 0; z-index: 1; background: var(--white); box-shadow: 1px 0 0 var(--border); }
+    .yr-table th:first-child { background: var(--bg-alt); }
+    .v-main { font-size: 24px; } .verdict { padding: 20px 18px; }
+    .tool-btn.ghost { margin-left: 0; }
+    .adj-row { flex-direction: column; align-items: stretch; } .adj-seg { max-width: none; }
+    .method-grid { grid-template-columns: 1fr; }
+    .ev-row, .ev-head { grid-template-columns: 1.2fr .9fr 1.1fr; gap: 6px; }
+    .ev-row input { font-size: 14px; padding: 9px 8px; }
+    .ev-row .input-wrap input { padding-right: 34px; }
+    .ev-row .input-unit { right: 8px; font-size: 12px; }
+    .sc-body, .sc-body.two { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 420px) { .levers { grid-template-columns: 1fr; } .grid-4 { grid-template-columns: 1fr; } .hero-title { font-size: 28px; } }
+  .mode-box { margin-top: 16px; }
+  .cust-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-bottom: 8px; }
+  .ev-table td.kind { text-align: left; font-size: 12.5px; color: var(--ink-soft); white-space: normal; }
+  .ev-table td.tax { font-weight: 900; }
+  .ev-table td.zero { color: var(--green); font-weight: 800; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); }
+  .check small { display: block; font-size: 12.5px; color: var(--ink-mute); font-weight: 600; }
+  @media (max-width: 768px) { .cust-row { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <a href="https://ttokjaetv.github.io/" class="hub-back">← 똑재TV 계산기 모음</a>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">똑</div>
+      <div>
+        <div class="logo-name">똑재TV</div>
+        <div class="logo-sub">CHILD GIFT CALCULATOR</div>
+      </div>
+    </div>
+    <span class="base-date">2026-10-24 세법 기준</span>
+  </header>
+
+  <div class="hero">
+    <span class="tag"><span class="dot"></span>자녀 증여 계산기</span>
+    <h1 class="hero-title">아이에게 언제, 얼마씩 주면<br><span class="underline-mark">증여세 없이</span> 줄 수 있을까?</h1>
+    <p class="hero-desc">
+      미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원(10년마다), 혼인·출산 <span data-rule="GIFT.marriageBirthDeduction/1e8">1</span>억원 공제와 10년 합산까지 반영해 증여세를 계산하고,<br class="pc-br">
+      <b>증여한 돈을 굴리면 아이가 몇 살에 얼마를 갖게 되는지</b>, 같은 돈을 나중에 한 번에 줄 때와 증여세가 얼마나 다른지 보여 드립니다.
+    </p>
+  </div>
+
+  <div class="top-cta">
+    <div class="top-cta-text">💡 <strong>자녀 계좌 투자</strong>가 더 궁금하신가요? 똑재TV에서 매주 풀어드립니다.</div>
+    <div class="top-cta-links">
+      <a href="https://www.youtube.com/@ttok_jae" target="_blank" rel="noopener" class="top-cta-link primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        똑재TV 구독하기
+      </a>
+      <a href="https://cafe.naver.com/ttokjae" target="_blank" rel="noopener" class="top-cta-link"><span class="naver-mark">N</span>평생 ETF 투자 카페</a>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" class="tool-btn" id="share-btn">설정 링크 복사</button>
+    <button type="button" class="tool-btn" id="reset-btn">처음 값으로</button>
+    <a href="#result" class="tool-btn ghost">결과 보기 ↓</a>
+  </div>
+
+  <!-- STEP 01 -->
+  <div class="card">
+    <div class="step-label"><div class="step-line"></div><span class="step-text">STEP 01</span></div>
+    <div class="step-title">아이 나이와 굴릴 기간</div>
+    <div class="step-desc">증여한 돈은 아이 명의 계좌에서 굴린다고 봅니다. 수익률은 <b>아이 계좌에서 낼 세금을 빼기 전(세전)</b> 기준이에요.</div>
+    <div class="grid-4">
+      <div><label class="label" for="age0">아이 현재 나이 (만)</label><div class="input-wrap"><input type="text" inputmode="numeric" id="age0" value="0"><span class="input-unit">세</span></div><div class="input-hint" id="age0-hint"></div></div>
+      <div><label class="label" for="target">몇 살까지 볼까요?</label><div class="input-wrap"><input type="text" inputmode="numeric" id="target" value="30"><span class="input-unit">세</span></div></div>
+      <div><label class="label" for="rate">연 수익률 (세전)</label><div class="input-wrap"><input type="text" inputmode="decimal" id="rate" value="6"><span class="input-unit">%</span></div></div>
+      <div><label class="label">주는 사람</label><div class="seg sm" id="donor-seg"><button type="button" data-v="parent" class="on">부모</button><button type="button" data-v="grand">조부모</button></div><div class="input-hint" id="donor-hint">부모 두 분은 한 사람으로 봐요</div></div>
+    </div>
+  </div>
+
+  <!-- STEP 02 -->
+  <div class="card">
+    <div class="step-label"><div class="step-line"></div><span class="step-text">STEP 02</span></div>
+    <div class="step-title">어떻게 주실 건가요?</div>
+    <div class="step-desc">공제 한도는 아이(받는 사람) 기준으로 <b>10년 동안 합쳐서</b> 미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원, 성년(만 <span data-rule="GIFT.minorAgeUnder">19</span>세부터) <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원이에요. 부모와 조부모가 준 돈은 한도를 같이 써요.</div>
+    <div class="seg" id="mode-seg"><button type="button" data-v="cycle" class="on">10년마다 한도만큼</button><button type="button" data-v="monthly">매달 적립</button><button type="button" data-v="custom">직접 입력</button></div>
+    <div class="mode-box" id="box-cycle"><p class="note" style="margin:0">지금 나이부터 10년마다 그 나이의 공제 한도만큼 줍니다(미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원, 성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원). 10년은 날짜로 세니, 실제로는 지난 증여일에서 10년이 지난 다음에 주세요.</p></div>
+    <div class="mode-box grid-3" id="box-monthly" style="display:none">
+      <div><label class="label" for="monthly">매달 주는 돈</label><div class="input-wrap"><input type="text" inputmode="numeric" id="monthly" data-man value="10"><span class="input-unit">만원</span></div><div class="input-hint" id="monthly-hint"></div></div>
+      <div><label class="label" for="m-from">시작 나이</label><div class="input-wrap"><input type="text" inputmode="numeric" id="m-from" value="0"><span class="input-unit">세</span></div></div>
+      <div><label class="label" for="m-to">끝 나이 (이 나이 전까지)</label><div class="input-wrap"><input type="text" inputmode="numeric" id="m-to" value="19"><span class="input-unit">세</span></div></div>
+    </div>
+    <div class="mode-box" id="box-custom" style="display:none">
+      <div class="cust-row" style="font-size:12px;font-weight:800;color:var(--ink-mute)"><span>주는 나이</span><span>금액</span></div>
+      <div id="cust-rows"></div>
+    </div>
+    <details class="adv" id="mb-fold">
+      <summary>혼인·출산 공제도 쓸 건가요? <small>결혼 신고 전후 2년·아이 출생 2년 안 증여, 평생 <span data-rule="GIFT.marriageBirthDeduction/1e8">1</span>억원 별도</small></summary>
+      <div class="adv-body grid-3">
+        <div><label class="check"><input type="checkbox" id="mb-on"><span>혼인·출산 때 따로 줄게요<small>10년 공제와 별개로 1억원까지 더</small></span></label></div>
+        <div><label class="label" for="mb-age">그때 아이 나이</label><div class="input-wrap"><input type="text" inputmode="numeric" id="mb-age" value="30"><span class="input-unit">세</span></div></div>
+        <div><label class="label" for="mb-amt">그때 줄 금액</label><div class="input-wrap"><input type="text" inputmode="numeric" id="mb-amt" data-man value="10,000"><span class="input-unit">만원</span></div></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- RESULT -->
+  <div class="card" id="result">
+    <div class="step-label"><div class="step-line"></div><span class="step-text">RESULT</span></div>
+    <div class="step-title">결과</div>
+    <div class="verdict" id="verdict"></div>
+    <div class="grid-4">
+      <div class="stat-card accent"><div class="stat-label" id="s-final-l">아이 자산</div><div class="stat-value" id="s-final">-</div><div class="stat-sub" id="s-final-sub"></div></div>
+      <div class="stat-card"><div class="stat-label">준 돈 합계</div><div class="stat-value" id="s-prin">-</div><div class="stat-sub" id="s-prin-sub"></div></div>
+      <div class="stat-card"><div class="stat-label">낸 증여세 합계</div><div class="stat-value" id="s-tax">-</div><div class="stat-sub" id="s-tax-sub"></div></div>
+      <div class="stat-card"><div class="stat-label" id="s-lump-l">나중에 한 번에 줬다면 증여세</div><div class="stat-value" id="s-lump">-</div><div class="stat-sub" id="s-lump-sub"></div></div>
+    </div>
+    <div class="alerts" id="alerts"></div>
+
+    <div class="sub-title">증여 일정과 증여세 <small>신고 기한: 증여받은 달 말일부터 3개월</small></div>
+    <div class="table-wrap"><table class="data-table ev-table" id="ev-table"><thead><tr><th>나이</th><th>연도</th><th>준 돈</th><th>10년 합산</th><th>공제</th><th>과세표준</th><th>증여세</th><th>비고</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="chart-head">
+      <div><div class="chart-title">나이별 아이 자산</div><div class="chart-subtitle">미래 금액(명목) · 증여 원금과 굴려서 늘어난 몫</div></div>
+    </div>
+    <div class="chart-container"><canvas id="bal-chart"></canvas></div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-label">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F4D5C4" stroke-width="2.5" stroke-linecap="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+      <span class="insight-label-text">KEY INSIGHT</span>
+    </div>
+    <h3 class="insight-title" id="ins-title">-</h3>
+    <div class="insight-desc" id="ins-desc"></div>
+    <div class="insight-tools">
+      <button type="button" class="cta-link secondary" id="copy-btn">결과 글로 복사</button>
+      <a class="cta-link secondary" href="https://ttokjaetv.github.io/goal-calc/" target="_blank" rel="noopener">목표금액까지 매달 얼마? →</a>
+      <a class="cta-link secondary" href="https://ttokjaetv.github.io/backtest/" target="_blank" rel="noopener">그 ETF, 과거엔 얼마였을까? →</a>
+    </div>
+    <div class="insight-cta">
+      <div class="insight-cta-text">📊 자녀 계좌 ETF 투자가 더 궁금하다면?</div>
+      <a href="https://www.youtube.com/@ttok_jae" target="_blank" rel="noopener" class="cta-link primary">똑재TV 구독하기</a>
+      <a href="https://cafe.naver.com/ttokjae" target="_blank" rel="noopener" class="cta-link secondary"><span class="naver-mark">N</span>평생 ETF 투자 카페 가입</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="step-label"><div class="step-line"></div><span class="step-text">HOW IT WORKS</span></div>
+    <div class="step-title">계산 방법과 가정</div>
+    <div class="method-grid" style="margin-top:14px">
+      <div class="method-box">
+        <div class="method-t">이렇게 계산해요 (상속세 및 증여세법)</div>
+        <ul class="method-list">
+          <li>증여할 때마다 직전 10년 안에 같은 사람(부모는 두 분을 한 사람으로)에게 받은 돈을 합쳐(제47조②) 공제를 빼고 과세표준을 구합니다.</li>
+          <li>공제: 직계존속에게 받으면 10년 합계 미성년 <span data-rule="GIFT.deductionLinealMinor/1e4">2,000</span>만원·성년 <span data-rule="GIFT.deductionLineal/1e4">5,000</span>만원(제53조), 혼인·출산 때는 따로 평생 <span data-rule="GIFT.marriageBirthDeduction/1e8">1</span>억원(제53조의2).</li>
+          <li>세율 10~50% 누진(제26조·제56조), 과세표준 <span data-rule="GIFT.minTaxBase/1e4">50</span>만원 미만은 0원(제55조②), 손주가 받으면 <span data-rule="GIFT.generationSkipSurcharge*100">30</span>% 할증(제57조), 합산된 이전 증여에 붙은 세금은 빼고(제58조), 기한 안에 신고하면 <span data-rule="GIFT.filingCreditRate*100">3</span>% 공제(제69조).</li>
+          <li>매달 적립은 한 해 동안 준 돈을 그해 증여 한 번으로 묶어 계산합니다(실제로는 매달이 각각 증여).</li>
+          <li>증여세는 아이가 받은 돈에서 낸다고 보고, 남은 돈을 연 수익률로 굴립니다(매달 적립은 매달 말에 넣음).</li>
+        </ul>
+      </div>
+      <div class="method-box">
+        <div class="method-t">계산에 넣지 않은 것</div>
+        <ul class="method-list">
+          <li>아이 계좌에서 굴리는 동안 내는 배당·양도 세금, 수수료.</li>
+          <li>정기적으로 줄 돈을 미리 한 번에 신고하는 '정기금' 평가, 부동산 등 시가 평가가 필요한 재산.</li>
+          <li>상속이 생기면 그 전 10년(상속인)·5년(그 밖) 안의 증여를 상속재산에 더하는 규정(제13조).</li>
+          <li>'나중에 한 번에 줬다면'은 같은 돈을 부모가 굴리다 그 나이에 한 번에 준다고 본 대략값입니다(부모 계좌의 세금은 빼지 않음).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    ※ 이 계산기는 입력한 수익률이 매년 그대로라고 가정한 시뮬레이션이며, 증여세는 상속세 및 증여세법(2025-10-01 시행본, 2026-10-24 확인)으로 계산했습니다. 실제 신고 전에는 국세청 홈택스 모의계산이나 세무 전문가와 확인하세요. 특정 상품의 매수·매도 권유가 아닙니다.<br>
+    2026-10-24 세법 기준
+  </footer>
+</div>
+
+<!-- 공용 제도 상수 (증여세 GIFT는 v2026.3부터) -->
+<script src="https://ttokjaetv.github.io/rules/v2026.3/rules.js"></script>
+<script src="https://ttokjaetv.github.io/rules/fill-v1.js"></script>
+<script>
+if (!window.TTOKJAE_RULES || !TTOKJAE_RULES.GIFT) {
+  var TJR_MSG = '기준값 파일(rules.js)을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.';
+  var tjrShow = function () { document.body.insertAdjacentHTML('afterbegin', '<div role="alert" style="background:#fdecea;color:#b3261e;padding:12px 16px;text-align:center;font-weight:600">' + TJR_MSG + '</div>'); };
+  document.body ? tjrShow() : document.addEventListener('DOMContentLoaded', tjrShow);
+  throw new Error(TJR_MSG);
+}
+const TR = TTOKJAE_RULES;
+/* 자녀 증여 계산 엔진 — 상속세 및 증여세법 (2025-10-01 시행본). 금액 원, 나이 만 나이, 1년 단위.
+ * 제도 숫자는 모두 rules.js(R.GIFT, v2026.3 이상)에서 읽는다.
+ *
+ * 증여 한 건(나이 a, 금액 g)의 세금 — 같은 증여자(부모는 두 분을 한 사람으로 봄)로부터 받은 것 기준
+ *   10년 합산(제47조②): 이번 증여 + 직전 10년 안(나이 a−10 초과)의 증여
+ *   증여재산공제(제53조): 이번 증여 때 나이로 정한 한도(미성년 2천만·성년 5천만). 10년 안에 받은 공제도 이 한도 안에 든다
+ *   혼인·출산 공제(제53조의2): 그 증여에 붙인 금액만큼 별도로, 평생 1억 안에서
+ *   과세표준 50만원 미만은 0(제55조②) → 세율표(제26조) → 손주면 30% 할증(제57조)
+ *   − 합산된 이전 증여 때 그 증여에 붙은 산출세액(제58조) → 신고세액공제 3%(제69조②)
+ *   각 증여에 '붙은 산출세액' = 그때 산출세액 − 그때 뺀 이전 세액 (합산이 이어져도 겹치지 않게)
+ */
+function giftCalcTax(base, R) {
+  const B = R.GIFT.brackets;
+  if (!(base > 0)) return 0;
+  for (const [lim, rate, ded] of B) if (base <= lim) return base * rate - ded;
+  return 0;
+}
+function giftLimit(age, R) { return age < R.GIFT.minorAgeUnder ? R.GIFT.deductionLinealMinor : R.GIFT.deductionLineal; }
+
+/* 증여 목록 [{age, amt, mb}] (mb = 그중 혼인·출산 공제를 붙일 금액) → 건별 세금 */
+function giftTaxes(events, opt, R) {
+  const G = R.GIFT, grand = opt && opt.donor === 'grand';
+  const ev = events.filter(e => e.amt > 0).map(e => ({ ...e })).sort((a, b) => a.age - b.age);
+  let mbUsed = 0;
+  ev.forEach((e, k) => {
+    const win = ev.slice(0, k).filter(x => x.age > e.age - G.periodYears);
+    const agg = e.amt + win.reduce((s, x) => s + x.amt, 0);
+    const mb = Math.min(e.mb || 0, e.amt, Math.max(0, G.marriageBirthDeduction - mbUsed));
+    mbUsed += mb;
+    const mbWin = mb + win.reduce((s, x) => s + (x.mbUsed || 0), 0);
+    const ded = Math.min(giftLimit(e.age, R), Math.max(0, agg - mbWin));
+    let base = Math.max(0, agg - ded - mbWin);
+    if (base < G.minTaxBase) base = 0;
+    let calc = Math.floor(giftCalcTax(base, R));
+    if (grand && calc > 0) {
+      const big = e.age < G.minorAgeUnder && e.amt > G.generationSkipLargeThreshold;
+      calc = Math.floor(calc * (1 + (big ? G.generationSkipSurchargeMinorLarge : G.generationSkipSurcharge)));
+    }
+    const prev = Math.min(calc, win.reduce((s, x) => s + x.own, 0));
+    const before = calc - prev;
+    const credit = Math.floor(before * G.filingCreditRate);
+    Object.assign(e, { agg, ded, mbUsed: mb, base, calc, prev, own: before, credit, tax: before - credit, win: win.length });
+  });
+  return ev;
+}
+
+/* 계획 → 증여 목록
+ *   p = { age0, target, mode: 'cycle'|'monthly'|'custom', monthly, mFrom, mTo, custom: [{age, amt}], mbOn, mbAge, mbAmt }
+ *   cycle: 지금 나이부터 10년마다 그 나이의 공제 한도만큼 / monthly: 매달 같은 금액(해마다 묶어 그해 증여로 봄) / custom: 직접 */
+function giftEvents(p, R) {
+  const G = R.GIFT, out = [];
+  if (p.mode === 'cycle') {
+    for (let a = p.age0; a <= p.target; a += G.periodYears) out.push({ age: a, amt: giftLimit(a, R), kind: 'cycle' });
+  } else if (p.mode === 'monthly') {
+    for (let a = Math.max(p.age0, p.mFrom); a < Math.min(p.target, p.mTo); a++) out.push({ age: a, amt: p.monthly * 12, kind: 'monthly' });
+  } else {
+    (p.custom || []).forEach(c => { if (c.amt > 0 && c.age >= p.age0 && c.age <= p.target) out.push({ age: Math.round(c.age), amt: c.amt, kind: 'custom' }); });
+  }
+  if (p.mbOn && p.mbAmt > 0 && p.mbAge >= p.age0 && p.mbAge <= p.target) out.push({ age: Math.round(p.mbAge), amt: p.mbAmt, mb: p.mbAmt, kind: 'mb' });
+  // 같은 나이 증여는 한 번으로 묶는다 (같은 해에 준 돈)
+  const by = {};
+  out.forEach(e => { const k = e.age; if (!by[k]) by[k] = { age: k, amt: 0, mb: 0, kinds: [] }; by[k].amt += e.amt; by[k].mb += e.mb || 0; by[k].kinds.push(e.kind); });
+  return Object.values(by).sort((a, b) => a.age - b.age);
+}
+
+/* 굴리기: 증여받은 해 초에 (증여 − 증여세)를 넣고 연 수익률로 불림. 매달 증여는 매달 말에 넣고 그해 증여세는 연말에 냄 */
+function giftSim(p, R) {
+  const ev = giftTaxes(giftEvents(p, R), { donor: p.donor }, R);
+  const r = p.rate, rm = Math.pow(1 + r, 1 / 12) - 1;
+  const mFactor = rm === 0 ? 12 : (Math.pow(1 + rm, 12) - 1) / rm;
+  const path = [];
+  let bal = 0, principal = 0, taxPaid = 0;
+  const at = a => ev.find(e => e.age === a);
+  for (let a = p.age0; a <= p.target; a++) {
+    const e = at(a);
+    const monthlyYear = p.mode === 'monthly' && e && e.kinds.includes('monthly');
+    if (e) { principal += e.amt; taxPaid += e.tax; }
+    if (a === p.target) {   // 목표 나이가 되는 날: 그날 준 돈까지 더하고 끝
+      if (e) bal += e.amt - e.tax;
+      path.push({ age: a, bal, principal, taxPaid });
+      break;
+    }
+    if (e && !monthlyYear) bal += e.amt - e.tax;
+    path.push({ age: a, bal, principal, taxPaid });
+    if (monthlyYear) {
+      const lump = e.amt - p.monthly * 12;   // 같은 해에 다른 증여(혼인·출산 등)가 겹친 몫은 연초에
+      bal += lump;
+      bal = bal * (1 + r) + p.monthly * mFactor - e.tax;
+    } else bal *= 1 + r;
+  }
+  const last = path[path.length - 1];
+  // 같은 돈을 목표 나이에 한 번에 줬다면 (자녀 자산 전체를 그때 증여, 혼인·출산 공제는 같은 조건)
+  const lumpAmt = last.bal + last.taxPaid;
+  const lump = giftTaxes([{ age: p.target, amt: lumpAmt, mb: p.mbOn ? Math.min(p.mbAmt, R.GIFT.marriageBirthDeduction) : 0 }], { donor: p.donor }, R)[0];
+  return { events: ev, path, final: last.bal, principal: last.principal, taxPaid: last.taxPaid, gain: last.bal - (last.principal - last.taxPaid), lump, lumpAmt };
+}
+
+
+
+const $ = id => document.getElementById(id);
+const STORE_KEY = 'tj-child-gift-v1';
+const ST = { donor: 'parent', mode: 'cycle' };
+const FIELDS = ['age0', 'target', 'rate', 'monthly', 'm-from', 'm-to', 'mb-age', 'mb-amt'];
+const NCUST = 5;
+const DEFAULTS = {}; FIELDS.forEach(id => { DEFAULTS[id] = $(id).value; });
+const CUST_DEF = [[0, 2000], [10, 2000], [20, 5000], ['', ''], ['', '']];   // rules-ok: 직접 입력 칸 예시(공제 한도와 같은 금액, 만원)
+
+$('cust-rows').innerHTML = CUST_DEF.map(([a, v], i) => `<div class="cust-row"><div class="input-wrap"><input type="text" inputmode="numeric" id="ca${i}" value="${a}" placeholder="나이"><span class="input-unit">세</span></div><div class="input-wrap"><input type="text" inputmode="numeric" id="cv${i}" data-man value="${v === '' ? '' : Number(v).toLocaleString()}" placeholder="금액"><span class="input-unit">만원</span></div></div>`).join('');
+for (let i = 0; i < NCUST; i++) { FIELDS.push('ca' + i, 'cv' + i); DEFAULTS['ca' + i] = $('ca' + i).value; DEFAULTS['cv' + i] = $('cv' + i).value; }
+
+function num(id) {
+  const el = $(id); if (!el) return 0;
+  const v = parseFloat(String(el.value).replace(/[^0-9.\-]/g, ''));
+  if (isNaN(v)) return 0;
+  return el.hasAttribute('data-man') ? v * 10000 : v;
+}
+const blank = id => String($(id).value).trim() === '';
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+function fmtMan(n) {
+  const neg = n < 0; n = Math.abs(Math.round(n / 10000));
+  if (n === 0) return '0원';
+  const eok = Math.floor(n / 10000), man = n % 10000;
+  const s = eok ? `${eok.toLocaleString()}억${man ? ' ' + man.toLocaleString() + '만원' : '원'}` : `${man.toLocaleString()}만원`;
+  return (neg ? '−' : '') + s;
+}
+function fmtWon(n) {
+  n = Math.round(Math.abs(n));
+  if (n === 0) return '0원';
+  const eok = Math.floor(n / 1e8), man = Math.floor(n % 1e8 / 1e4), won = n % 1e4;
+  const p = [];
+  if (eok) p.push(eok.toLocaleString() + '억');
+  if (man) p.push(man.toLocaleString() + '만');
+  if (won) p.push(won.toLocaleString());
+  return p.join(' ') + '원';
+}
+
+function readParams() {
+  const age0 = clamp(Math.round(num('age0')), 0, 80);
+  const target = clamp(Math.round(num('target')) || 30, age0 + 1, 100);
+  const custom = [];
+  for (let i = 0; i < NCUST; i++) if (!blank('ca' + i) && num('cv' + i) > 0) custom.push({ age: clamp(Math.round(num('ca' + i)), 0, 100), amt: num('cv' + i) });
+  return { year0: new Date().getFullYear(), age0, target, rate: clamp(num('rate'), -20, 30) / 100, mode: ST.mode, donor: ST.donor,
+    monthly: Math.max(0, num('monthly')), mFrom: clamp(Math.round(num('m-from')), 0, 100), mTo: clamp(Math.round(num('m-to')), 0, 100), custom,
+    mbOn: $('mb-on').checked, mbAge: clamp(Math.round(num('mb-age')), 0, 100), mbAmt: Math.max(0, num('mb-amt')) };
+}
+
+let chart = null, last = null;
+function render() {
+  const p = readParams();
+  const r = giftSim(p, TR);
+  last = { p, r };
+  ['cycle', 'monthly', 'custom'].forEach(m => { $('box-' + m).style.display = p.mode === m ? '' : 'none'; });
+  $('age0-hint').textContent = `${p.year0 - p.age0}년생 · 미성년(만 ${TR.GIFT.minorAgeUnder}세 전)은 ${p.year0 - p.age0 + TR.GIFT.minorAgeUnder - 1}년까지`;
+  $('donor-hint').textContent = p.donor === 'grand' ? `손주가 받으면 세금에 ${Math.round(TR.GIFT.generationSkipSurcharge * 100)}% 할증 · 공제 한도는 부모와 같이 써요` : '부모 두 분은 한 사람으로 봐요';
+  if (p.mode === 'monthly') {
+    const y = p.monthly * 12, lim = TR.GIFT.deductionLinealMinor;
+    $('monthly-hint').textContent = `1년 ${fmtMan(y)} · 10년 ${fmtMan(y * TR.GIFT.periodYears)}${y * TR.GIFT.periodYears > lim ? ` (미성년 한도 ${fmtMan(lim)} 넘음)` : ''}`;
+  }
+
+  const lumpSave = r.lump.tax - r.taxPaid;
+  $('verdict').innerHTML = `<div class="v-k">결론 · ${p.age0}세부터 ${p.target}세까지 · 연 ${(p.rate * 100).toFixed(1)}%</div>`
+    + `<div class="v-main">아이가 ${p.target}세가 되면 <b>${fmtMan(r.final)}</b>을 갖게 돼요</div>`
+    + `<div class="v-sub">준 돈 ${fmtMan(r.principal)} · 낸 증여세 ${fmtWon(r.taxPaid)} · 굴려서 늘어난 몫 ${fmtMan(r.gain)}. `
+    + (lumpSave > 0 ? `같은 돈을 ${p.target}세에 한 번에 줬다면 증여세가 <b>${fmtWon(r.lump.tax)}</b> — 미리 나눠 준 덕분에 <b>${fmtWon(lumpSave)}</b>을 아껴요.` : '') + `</div>`;
+  $('s-final-l').textContent = `${p.target}세 때 아이 자산`;
+  $('s-final').textContent = fmtMan(r.final);
+  $('s-final-sub').textContent = `미래 금액(명목) · ${p.year0 + p.target - p.age0}년`;
+  $('s-prin').textContent = fmtMan(r.principal);
+  $('s-prin-sub').textContent = `${r.events.length}번에 나눠서`;
+  $('s-tax').textContent = fmtWon(r.taxPaid);
+  $('s-tax-sub').textContent = r.taxPaid ? `신고세액공제 ${Math.round(TR.GIFT.filingCreditRate * 100)}% 반영` : '공제 안에서만 줘서 0원';
+  $('s-lump-l').textContent = `${p.target}세에 한 번에 줬다면 증여세`;
+  $('s-lump').textContent = fmtWon(r.lump.tax);
+  $('s-lump-sub').textContent = `${fmtMan(r.lumpAmt)}을 한 번에 · ${lumpSave > 0 ? `${fmtWon(lumpSave)} 더 냄` : '차이 없음'}`;
+
+  const al = [];
+  const taxed = r.events.filter(e => e.tax > 0);
+  if (taxed.length) al.push(['warn', `증여세가 나오는 해가 <b>${taxed.length}번</b> 있어요(${taxed.map(e => e.age + '세').join(', ')}). 10년 합산이 공제 한도를 넘었기 때문이에요. 시점을 늦추거나 금액을 나누면 줄일 수 있어요.`]);
+  else al.push(['ok', '모든 증여가 공제 한도 안이라 증여세가 0원이에요.']);
+  al.push(['info', '세금이 0원이어도 <b>증여 신고를 해 두는 게 좋아요</b>. 아이가 나중에 그 돈과 불어난 돈으로 집을 살 때 "이미 증여받은 돈"이라는 자금 출처 증빙이 되고, 신고한 돈을 일반적인 예금·ETF 투자로 불린 몫은 아이의 소득이에요.']);
+  if (p.donor === 'grand') al.push(['info', `조부모가 손주에게 주면 세금이 ${Math.round(TR.GIFT.generationSkipSurcharge * 100)}% 늘지만, 부모를 거쳐 두 번 증여되는 것보다 쌀 수 있어요. 공제 한도는 부모·조부모가 함께 써요.`]);
+  if (p.mode === 'monthly' && r.events.length) al.push(['info', '매달 적립은 매달이 각각 증여예요. 이 계산은 한 해 치를 묶어 본 근삿값이고, 미리 \'정기금\'으로 한 번에 신고하는 방법은 넣지 않았어요.']);
+  $('alerts').innerHTML = al.map(([k, h]) => `<div class="alert ${k}"><span class="ic">${k === 'warn' ? '!' : k === 'ok' ? '✓' : 'i'}</span><div>${h}</div></div>`).join('');
+
+  const KIND = { cycle: '10년 공제 한도', monthly: '매달 적립(1년치)', custom: '직접 입력', mb: '혼인·출산 공제' };
+  $('ev-table').querySelector('tbody').innerHTML = r.events.map(e => `<tr><td>${e.age}세</td><td>${p.year0 + e.age - p.age0}</td><td>${fmtMan(e.amt)}</td><td>${e.win ? fmtMan(e.agg) : '-'}</td><td>${fmtMan(e.ded + e.mbUsed)}</td><td>${fmtMan(e.base)}</td>`
+    + `<td class="tax ${e.tax ? '' : 'zero'}">${e.tax ? fmtWon(e.tax) : '0원'}</td><td class="kind">${e.kinds.map(k => KIND[k]).join(' + ')}${e.age < TR.GIFT.minorAgeUnder ? ' · 미성년' : ''}${e.prev ? ` · 이전 세액 ${fmtWon(e.prev)} 뺌` : ''}</td></tr>`).join('')
+    || '<tr><td colspan="8" style="text-align:center;color:var(--ink-mute)">증여 일정이 없어요. 금액이나 나이를 확인해 주세요.</td></tr>';
+
+  renderChart(p, r);
+  renderInsight(p, r, lumpSave);
+  saveLocal();
+}
+
+const FONT = { family: "'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" };
+function renderChart(p, r) {
+  if (typeof Chart === 'undefined') return;
+  if (chart) chart.destroy();
+  const P = r.path;
+  chart = new Chart($('bal-chart'), {
+    type: 'bar',
+    data: { labels: P.map(x => x.age + '세'), datasets: [
+      { label: '증여 원금(세금 뺀 돈)', data: P.map(x => (x.principal - x.taxPaid) / 1e8), backgroundColor: '#C4A57B', stack: 's' },
+      { label: '굴려서 늘어난 몫', data: P.map(x => Math.max(0, x.bal - (x.principal - x.taxPaid)) / 1e8), backgroundColor: '#D9542B', stack: 's' },
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'bottom', labels: { font: { ...FONT, size: 12, weight: 700 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtMan(c.raw * 1e8)}` } } },
+      scales: { x: { stacked: true, ticks: { font: { ...FONT, size: 11 }, maxRotation: 0, autoSkipPadding: 6 }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { font: { ...FONT, size: 11 }, callback: v => (Math.round(v * 100) / 100) + '억' }, grid: { color: '#EDE5D8' } } } },
+  });
+}
+
+function renderInsight(p, r, lumpSave) {
+  const li = [];
+  $('ins-title').innerHTML = r.gain > 0 ? `굴려서 늘어난 <em>${fmtMan(r.gain)}</em>에는 증여세가 붙지 않아요` : '증여는 일찍, 나눠서 할수록 유리해요';
+  li.push(`증여세는 <strong>줄 때의 금액</strong>에만 매겨요. 미리 주고 아이 계좌에서 굴리면 늘어난 몫은 아이 돈이라 다시 증여세를 내지 않아요.${lumpSave > 0 ? ` 이 계획은 나중에 한 번에 줄 때보다 증여세를 <strong>${fmtWon(lumpSave)}</strong> 덜 내요.` : ''}`);
+  li.push(`공제 한도는 <strong>10년마다</strong> 다시 생겨요. 태어나자마자 ${fmtMan(TR.GIFT.deductionLinealMinor)}, 10세에 ${fmtMan(TR.GIFT.deductionLinealMinor)}, 20세에 ${fmtMan(TR.GIFT.deductionLineal)}, 30세에 ${fmtMan(TR.GIFT.deductionLineal)}이면 세금 없이 ${fmtMan(TR.GIFT.deductionLinealMinor * 2 + TR.GIFT.deductionLineal * 2)}을 줄 수 있고, 결혼·출산 때 ${fmtMan(TR.GIFT.marriageBirthDeduction)}을 더 줄 수 있어요.`);
+  li.push('아이 명의 계좌의 돈은 아이 돈이에요. 부모가 마음대로 꺼내 쓰면 증여가 아니라고 볼 수 있으니, 주고 나면 아이 계좌에서만 굴리세요.');
+  $('ins-desc').innerHTML = `<ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`;
+}
+
+/* ---- 저장·공유 ---- */
+function collect() { const o = { donor: ST.donor, mode: ST.mode, mb: $('mb-on').checked ? 1 : 0 }; FIELDS.forEach(id => { o[id] = $(id).value; }); return o; }
+function setSeg(segId, key, v) { ST[key] = v; $(segId).querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+function apply(o) {
+  if (o.donor === 'parent' || o.donor === 'grand') setSeg('donor-seg', 'donor', o.donor);
+  if (['cycle', 'monthly', 'custom'].includes(o.mode)) setSeg('mode-seg', 'mode', o.mode);
+  if (o.mb != null) { $('mb-on').checked = String(o.mb) === '1'; if ($('mb-on').checked) $('mb-fold').open = true; }
+  FIELDS.forEach(id => { if (o[id] != null) $(id).value = String(o[id]).replace(/[^0-9.,]/g, '').slice(0, 15); });
+  document.querySelectorAll('input[data-man]').forEach(formatMan);
+}
+function saveLocal() { try { localStorage.setItem(STORE_KEY, JSON.stringify(collect())); } catch (e) {} }
+function formatMan(el) {
+  const raw = el.value.replace(/[^0-9]/g, ''); if (raw === '') return;
+  const pos = el.value.length - (el.selectionStart ?? el.value.length);
+  el.value = Number(raw).toLocaleString();
+  try { if (document.activeElement === el) { const np = Math.max(0, el.value.length - pos); el.setSelectionRange(np, np); } } catch (e) {}
+}
+let timer = null;
+function schedule() { clearTimeout(timer); timer = setTimeout(render, 120); }
+document.querySelectorAll('input').forEach(el => {
+  el.addEventListener('input', () => { if (el.hasAttribute('data-man')) formatMan(el); schedule(); });
+  el.addEventListener('change', schedule);
+});
+$('donor-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { setSeg('donor-seg', 'donor', b.dataset.v); render(); }));
+$('mode-seg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { setSeg('mode-seg', 'mode', b.dataset.v); render(); }));
+$('share-btn').addEventListener('click', () => {
+  const url = location.origin + location.pathname + '?' + new URLSearchParams(collect()).toString();
+  const done = () => { const b = $('share-btn'); b.textContent = '복사했어요 ✓'; setTimeout(() => { b.textContent = '설정 링크 복사'; }, 1600); };
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt('아래 주소를 복사하세요', url)); else prompt('아래 주소를 복사하세요', url);
+});
+$('reset-btn').addEventListener('click', () => {
+  FIELDS.forEach(id => { $(id).value = DEFAULTS[id]; });
+  setSeg('donor-seg', 'donor', 'parent'); setSeg('mode-seg', 'mode', 'cycle'); $('mb-on').checked = false;
+  render();
+});
+$('copy-btn').addEventListener('click', () => {
+  if (!last) return;
+  const { p, r } = last;
+  const lines = [
+    `[자녀 증여 계산기 결과 · ${new Date().toISOString().slice(0, 10)}]`,
+    `· 아이 ${p.age0}세 → ${p.target}세 · 연 ${(p.rate * 100).toFixed(1)}% · ${p.donor === 'grand' ? '조부모' : '부모'}가 증여`,
+    `· 증여 일정: ${r.events.map(e => `${e.age}세 ${fmtMan(e.amt)}`).join(', ')}`,
+    `· 준 돈 ${fmtMan(r.principal)} · 증여세 ${fmtWon(r.taxPaid)} → ${p.target}세 때 ${fmtMan(r.final)}`,
+    `· 같은 돈을 ${p.target}세에 한 번에 줬다면 증여세 ${fmtWon(r.lump.tax)}`,
+    'https://ttokjaetv.github.io/child-gift/',
+  ].join('\n');
+  const b = $('copy-btn'); const ok = () => { b.textContent = '복사했어요 ✓'; setTimeout(() => { b.textContent = '결과 글로 복사'; }, 1600); };
+  if (navigator.clipboard) navigator.clipboard.writeText(lines).then(ok, () => prompt('복사하세요', lines)); else prompt('복사하세요', lines);
+});
+
+(function init() {
+  let o = null;
+  const q = new URLSearchParams(location.search);
+  if ([...q.keys()].length) { o = {}; q.forEach((v, k) => { o[k] = v; }); }
+  else { try { o = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { o = null; } }
+  if (o) apply(o);
+  render();
+})();
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico">
 <title>자녀 증여 계산기 · 똑재TV</title>
 <meta name="description" content="자녀에게 언제, 얼마씩 증여하면 증여세 없이 줄 수 있는지 — 미성년 2,000만원·성년 5,000만원(10년), 혼인·출산 1억원 공제와 10년 합산까지 반영해 증여세와, 증여한 돈을 ETF로 굴렸을 때 자녀가 받게 될 금액을 계산하는 무료 계산기. 2026년 세법 기준.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -104,6 +105,8 @@
   .real-seg { width: auto; }
   .real-seg button { padding: 7px 12px; font-size: 13px; white-space: nowrap; }
 
+  .scroll-hint { display: none; margin: 12px 0 -8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-mute); }
+  @media (max-width: 546px) { .scroll-hint.sh-546 { display: block; } }
   .table-wrap { overflow-x: auto; margin-top: 16px; border-radius: 12px; -webkit-overflow-scrolling: touch; }
   .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
   .data-table th { background: var(--bg-alt); padding: 12px 10px; text-align: right; font-weight: 800; color: var(--ink-soft); font-size: 13px; border-bottom: 1.5px solid var(--border); white-space: nowrap; }
@@ -351,6 +354,7 @@
     <div class="alerts" id="alerts"></div>
 
     <div class="sub-title">증여 일정과 증여세 <small>신고 기한: 증여받은 달 말일부터 3개월</small></div>
+    <p class="scroll-hint sh-546" aria-hidden="true">← 옆으로 밀어 보세요 →</p>
     <div class="table-wrap"><table class="data-table ev-table" id="ev-table"><thead><tr><th>나이</th><th>연도</th><th>준 돈</th><th>10년 합산</th><th>공제</th><th>과세표준</th><th>증여세</th><th>비고</th></tr></thead><tbody></tbody></table></div>
   </div>
 

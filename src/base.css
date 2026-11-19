@@ -95,7 +95,8 @@
   .real-seg button { padding: 7px 12px; font-size: 13px; white-space: nowrap; }
 
   .scroll-hint { display: none; margin: 12px 0 -8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-mute); }
-  @media (max-width: 546px) { .scroll-hint.sh-546 { display: block; } }
+  @media (max-width: 624px) { .scroll-hint.sh-624 { display: block; } }
+  @media print { .scroll-hint { display: none !important; } }
   .table-wrap { overflow-x: auto; margin-top: 16px; border-radius: 12px; -webkit-overflow-scrolling: touch; }
   .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
   .data-table th { background: var(--bg-alt); padding: 12px 10px; text-align: right; font-weight: 800; color: var(--ink-soft); font-size: 13px; border-bottom: 1.5px solid var(--border); white-space: nowrap; }

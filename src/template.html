@@ -12,7 +12,7 @@
 /*__BASE_CSS__*/
   .mode-box { margin-top: 16px; }
   .cust-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-bottom: 8px; }
-  .ev-table td.kind { text-align: left; font-size: 12.5px; color: var(--ink-soft); white-space: normal; }
+  .ev-table td.kind { text-align: left; font-size: 12.5px; color: var(--ink-soft); white-space: normal; min-width: 120px; }
   .ev-table td.tax { font-weight: 900; }
   .ev-table td.zero { color: var(--green); font-weight: 800; }
   .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -128,7 +128,7 @@
     <div class="alerts" id="alerts"></div>
 
     <div class="sub-title">증여 일정과 증여세 <small>신고 기한: 증여받은 달 말일부터 3개월</small></div>
-    <p class="scroll-hint sh-546" aria-hidden="true">← 옆으로 밀어 보세요 →</p>
+    <p class="scroll-hint sh-624" aria-hidden="true">← 옆으로 밀어 보세요 →</p>
     <div class="table-wrap"><table class="data-table ev-table" id="ev-table"><thead><tr><th>나이</th><th>연도</th><th>준 돈</th><th>10년 합산</th><th>공제</th><th>과세표준</th><th>증여세</th><th>비고</th></tr></thead><tbody></tbody></table></div>
   </div>
 
